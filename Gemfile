@@ -71,3 +71,12 @@ group :test do
   gem "capybara"
   gem "selenium-webdriver"
 end
+
+gem 'carrierwave', '~> 3.0'
+gem 'carrierwave_backgrounder', '0.4.3', git: 'https://github.com/roman-franko/carrierwave_backgrounder.git'
+gem 'carrierwave-base64', '~> 2.10'
+gem 'carrierwave-crop', '0.2.0', git: 'https://github.com/roman-franko/carrierwave-crop.git'
+gem 'mini_magick', '~> 4.12'
+
+gem 'resque', '~> 2.6'
+gem "redis-rails", '~> 5.0'

@@ -1,5 +1,10 @@
 <div id="<%= dom_id post %>">
   <p class="my-5">
+    <%= image_tag(post.photo_url) if post.photo? %>
+    <%= image_tag(post.photo.thumb.url) if post.photo? %>
+  </p>
+
+  <p class="my-5">
     <strong class="block font-medium mb-1">Title:</strong>
     <%= post.title %>
   </p>

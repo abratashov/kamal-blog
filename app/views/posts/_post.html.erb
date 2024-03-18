@@ -1,7 +1,7 @@
 <div id="<%= dom_id post %>">
   <p class="my-5">
     <%= image_tag(post.photo_url) if post.photo? %>
-    <%= image_tag(post.photo.thumb.url) if post.photo.thumb.file.exists? %>
+    <%= image_tag(post.photo.thumb.url) if post.photo&.thumb&.file&.exists? %>
   </p>
 
   <p class="my-5">

@@ -64,6 +64,7 @@ group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]
   # gem "spring"
 
+  gem "letter_opener"
 end
 
 group :test do
@@ -80,3 +81,4 @@ gem 'mini_magick', '~> 4.12'
 
 gem 'resque', '~> 2.6'
 gem "redis-rails", '~> 5.0'
+gem "dotenv-rails"

@@ -1,0 +1,2 @@
+# Name of your application. Used to uniquely configure containers.
+service: <%= ENV['DOCKER_CONTAINER'] %>

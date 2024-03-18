@@ -1,59 +1,103 @@
 # Name of your application. Used to uniquely configure containers.
-service: kamal-blog
+service: <%= ENV['DOCKER_CONTAINER'] %>
 
 # Name of the container image.
-image: abratashov/kamal-blog
+image: <%= ENV['DOCKER_IMAGE'] %>
 
-# Deploy to these servers.
-# servers:
-#   - 31.42.190.196
+# Credentials for your image host.
+registry:
+  server: <%= ENV['DOCKER_SERVER'] %>
+  username: <%= ENV['DOCKER_USERNAME'] %>
+  password:
+    - DOCKER_REGISTRY_PASSWORD
+
+ssh:
+  user: <%= ENV['SERVER_USER'] %>
 
 servers:
   web:
     hosts:
-      - 31.42.190.196
+      - <%= ENV['SERVER_IP'] %>
     labels:
-      traefik.http.routers.kamal_blog.rule: Host(`vpsku6hi.netxi.host`)
+      # Enable SSL
+      traefik.http.routers.kamal_blog.rule: Host(`<%= ENV['SERVER_HOSTNAME'] %>`)
       traefik.http.routers.kamal_blog_secure.entrypoints: websecure
-      traefik.http.routers.kamal_blog_secure.rule: Host(`vpsku6hi.netxi.host`)
+      traefik.http.routers.kamal_blog_secure.rule: Host(`<%= ENV['SERVER_HOSTNAME'] %>`)
       traefik.http.routers.kamal_blog_secure.tls: true
       traefik.http.routers.kamal_blog_secure.tls.certresolver: letsencrypt
+      # Enable GZip compression
+      # curl https://your.host --silent -H "Accept-Encoding: gzip,deflate" --write-out "%{size_download}\n" --output /dev/null
+      traefik.http.routers.kamal_blog_secure.middlewares: "traefik-compress"
+      traefik.http.middlewares.traefik-compress.compress: true
+  job:
+    hosts:
+      - <%= ENV['SERVER_IP'] %>
+    cmd: bundle exec rails resque:work QUEUE=*
 
-# Credentials for your image host.
-registry:
-  # Specify the registry server, if you're not using Docker Hub
-  # server: registry.digitalocean.com / ghcr.io / ...
-  server: ghcr.io
-  username: abratashov
-
-  # Always use an access token rather than real password when possible.
-  password:
-    - DOCKER_REGISTRY_PASSWORD
+# Map folders with files and images
+# $ sudo mkdir /data && sudo chmod 777 -R /data
+volumes:
+  - "/data/storage:/rails/storage"
+  - "/data/uploads:/rails/public/uploads"
 
 # Inject ENV variables into containers (secrets come from .env).
 # Remember to run `kamal env push` after making changes!
 env:
   clear:
-    DB_HOST: 31.42.190.196
+    RAILS_ENV: production
+    RACK_ENV: production
+    RAILS_LOG_TO_STDOUT: true
+    RAILS_SERVE_STATIC_FILES: true
   secret:
+    ################################################# Server
+    # - SERVER_USER
+    # - SERVER_IP
+    # - SERVER_HOSTNAME
+    # - SERVER_SSL_EMAIL
+    ################################################# DB Postgres
+    - DB_NAME
+    - DB_USER
+    - DB_PASSWORD
+    - DB_HOST
+    ################################################# DB Redis
+    # - REDIS_PASSWORD
+    - REDIS_URL
+    ################################################# Email settings (for prod or skip dev)
+    - EMAIL_USER
+    - EMAIL_PASSWORD
+    - EMAIL_ADDRESS
+    - EMAIL_PORT
+    - EMAIL_DOMAIN
+    - EMAIL_AUTOTLS
+    - EMAIL_AUTH
+    ################################################# OTHER
     - RAILS_MASTER_KEY
-    - DATABASE_PASSWORD
+
+asset_path: /rails/public/assets
 
 # Use accessory services (secrets come from .env).
 accessories:
   db:
     image: postgres:15
-    host: 31.42.190.196
+    host: <%= ENV['SERVER_IP'] %>
     port: 5432
     env:
-      clear:
-        POSTGRES_USER: 'root'
       secret:
-        - DATABASE_PASSWORD
+        - DB_NAME
+        - DB_USER
+        - DB_PASSWORD
     files:
       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
     directories:
       - data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7.0
+    host: <%= ENV['SERVER_IP'] %>
+    port: 6379
+    cmd: "redis-server --requirepass <%= ENV['REDIS_PASSWORD'] %>"
+    directories:
+      - data:/data
 
 traefik:
   options:
@@ -62,12 +106,16 @@ traefik:
     volume:
       - "/letsencrypt/acme.json:/letsencrypt/acme.json"
   args:
+    # Enable SSL
     entryPoints.web.address: ":80"
     entryPoints.websecure.address: ":443"
-    entryPoints.web.http.redirections.entryPoint.to: websecure
-    entryPoints.web.http.redirections.entryPoint.scheme: https
-    entryPoints.web.http.redirections.entrypoint.permanent: true
-    certificatesResolvers.letsencrypt.acme.email: "na.site.iteam@gmail.com"
+
+    # Enable Strict SSL mode in Cloudflare to solve the redirection conflict
+    # https://stackoverflow.com/questions/53082591/setting-up-traefik-with-le-integration-error-too-many-redirects-302
+    # entryPoints.web.http.redirections.entryPoint.to: websecure
+    # entryPoints.web.http.redirections.entryPoint.scheme: https
+    # entryPoints.web.http.redirections.entrypoint.permanent: true
+    certificatesResolvers.letsencrypt.acme.email: <%= ENV['SERVER_SSL_EMAIL'] %>
     certificatesResolvers.letsencrypt.acme.storage: "/letsencrypt/acme.json"
     certificatesResolvers.letsencrypt.acme.httpchallenge: true
     certificatesResolvers.letsencrypt.acme.httpchallenge.entrypoint: web

@@ -1,24 +1,18 @@
-# README
+# Readme
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Exemplar Rails project with Kamal deployment https://kamal-deploy.org
 
-Things you may want to cover:
+Deployment onto the server with full-fledged settings:
 
-* Ruby version
+* Postgres
+* Resque/Redis
+* Email
+* Server security
 
-* System dependencies
+Detailed installation instructions:
+```sh
+doc/install_dev.md
+doc/install_prod.md
+```
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+Good luck!

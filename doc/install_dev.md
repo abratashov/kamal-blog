@@ -2,9 +2,9 @@
 
 ## Setup tools
 
-Install RVM and Ruby:
+### Install RVM and Ruby
 ```sh
-https://rvm.io/rvm/install
+# https://rvm.io/rvm/install
 
 rvm install $(sed -n '1p' .ruby-version)
 rvm use $(sed -n '1p' .ruby-version)
@@ -12,20 +12,28 @@ rvm use $(sed -n '1p' .ruby-version)
 bundle install
 ```
 
+### Install Node (optional)
+```sh
+nvm install $(sed -n '1p' .nvmrc)
+nvm use $(sed -n '1p' .nvmrc)
+node -v
+npm install -g yarn
+cd .. && cd kamal-blog
+yarn install
+```
+
+### Autoload Ruby & Node versions
+```sh
+micro ~/.bashrc
+#<append content bin/client/version_autoloader.sh>
+```
+
 ## Setup env variables
 
 Create and set all need credentials that are used in the `config/initializers/environment_loader.rb`:
 ```sh
-# .env.development
-
-################################################# DB Postgres
-DB_NAME=kamal_blog_development
-DB_HOST=localhost
-DB_USER=postgres
-POSTGRES_PASSWORD=postgres
-
-################################################# DB Redis
-REDIS_URL=redis://localhost:6379/0
+# Create and fill ENV file for development
+cp .default.env.development .env.development
 ```
 
 ## Setup Database

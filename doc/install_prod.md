@@ -14,6 +14,8 @@ Create VPS instance: hetzner.com / fotbo.com / etc.
 
 ### Setup CloudFlare
 
+https://dash.cloudflare.com/
+
 * Add DNS record for `myapp.domain.org`:
 ```
 Type    Name          IPv4 address    Proxy status    TTL
@@ -37,6 +39,7 @@ https://gitlab.com/-/user_settings/personal_access_tokens
 ### Setup root access
 ```sh
 ssh root@1.2.3.4
+mkdir ~/.ssh
 touch ~/.ssh/authorized_keys
 
 local$ cat ~/.ssh/id_ed25519.pub | ssh root@1.2.3.4 'cat >> ~/.ssh/authorized_keys'
@@ -49,7 +52,6 @@ sudo apt-get update
 sudo apt-get upgrade -y
 sudo apt-get dist-upgrade
 sudo apt-get autoclean
-reboot
 ```
 
 ### Setup deployer access
@@ -60,6 +62,7 @@ exit
 ssh deployer@1.2.3.4
 mkdir ~/.ssh
 touch ~/.ssh/authorized_keys
+exit
 local$ cat ~/.ssh/id_ed25519.pub | ssh deployer@1.2.3.4 'cat >> ~/.ssh/authorized_keys'
 ```
 
@@ -85,48 +88,12 @@ sudo reboot
 
 Set all needed credentials that are used in the `config/initializers/environment_loader.rb`:
 
-<details>
-  <summary>.env.demo</summary>
+```sh
+# Create and fill ENV file for config/deploy.demo.yml
+cp .default.env.demo .env.demo
+```
 
-  ```sh
-  #.env.demo for config/deploy.demo.yml
-
-  ################################################# Docker
-  DOCKER_SERVER=registry.gitlab.com
-  DOCKER_USERNAME=username
-  DOCKER_REGISTRY_PASSWORD=glpat-token
-  DOCKER_IMAGE=username/kamal-blog/kamal-blog-demo
-  DOCKER_CONTAINER=kamal-blog-demo
-
-  ################################################# Server
-  SERVER_USER=deployer
-  SERVER_IP=1.2.3.4
-  SERVER_HOSTNAME=myapp.domain.org
-  SERVER_SSL_EMAIL=myapp@domain.org
-
-  ################################################# DB Postgres
-  DB_NAME=myapp_production
-  DB_HOST=1.2.3.4
-  DB_USER=deployer
-  POSTGRES_PASSWORD=pgpass
-
-  ################################################# DB Redis
-  REDIS_PASSWORD=redispass
-  REDIS_URL=redis://:redispass@172.17.0.1:6379/0
-
-  ################################################# Email settings
-  EMAIL_USER=myapp@domain.org
-  EMAIL_PASSWORD='emailpass'
-  EMAIL_ADDRESS=mail.domain.org
-  EMAIL_PORT=587
-  EMAIL_DOMAIN=domain.org
-  EMAIL_AUTOTLS=true
-  EMAIL_AUTH=login
-
-  ################################################# OTHER
-  RAILS_MASTER_KEY=<content of config/master.key>
-  ```
-</details>
+### Setup app
 
 ```sh
 # Build server
@@ -135,9 +102,6 @@ kamal setup -d demo
 
 # Change DB password in case of sensitive data
 # ...
-
-# Update server
-kamal deploy -d demo
 ```
 
 ```sh
@@ -161,42 +125,8 @@ sudo service fail2ban restart
 ```sh
 sudo touch /data/firewall.sh && sudo chmod 777 /data/firewall.sh
 micro /data/firewall.sh
-```
-<details>
-  <summary>firewall.sh</summary>
+# <put here content of bin/server/firewall.sh>
 
-  ```sh
-  #!/usr/bin/env sh
-
-  # Wait until Docker applies its own rules
-  while ! sudo iptables -n --list DOCKER >/dev/null 2>&1
-  do
-    sleep 1;
-  done
-
-  # Close 5432 for all
-  if [ -z "$(sudo iptables -S | grep -- '-A DOCKER -p tcp -m tcp --dport 5432 -j DROP')" ]; then
-    sudo iptables -I DOCKER -s 0.0.0.0/0 -p tcp --dport 5432 -j DROP
-  fi
-
-  # Open 5432 for Docker
-  if [ -z "$(sudo iptables -S | grep -- '-A DOCKER -s 172.16.0.0/12 -p tcp -m tcp --dport 5432 -j ACCEPT')" ]; then
-    sudo iptables -I DOCKER -s 172.16.0.0/12 -p tcp --dport 5432 -j ACCEPT
-  fi
-
-  # Close 6379 for all
-  if [ -z "$(sudo iptables -S | grep -- '-A DOCKER -p tcp -m tcp --dport 6379 -j DROP')" ]; then
-    sudo iptables -I DOCKER -s 0.0.0.0/0 -p tcp --dport 6379 -j DROP
-  fi
-
-  # Open 6379 for Docker
-  if [ -z "$(sudo iptables -S | grep -- '-A DOCKER -s 172.16.0.0/12 -p tcp -m tcp --dport 6379 -j ACCEPT')" ]; then
-    sudo iptables -I DOCKER -s 172.16.0.0/12 -p tcp --dport 6379 -j ACCEPT
-  fi
-  ```
-</details>
-
-```sh
 # Update Cron to load firewall script after reboot
 sudo crontab -e
 # Add this line
@@ -225,19 +155,19 @@ sudo rkhunter --update
 sudo rkhunter --check --skip-keypress
 ```
 
-### Audit with Lynis
-
-```sh
-sudo apt update && sudo apt install Lynis
-sudo lynis audit system
-sudo lynis audit system --quick
-```
-
 ### Audit packages signature with Debsums
 
 ```sh
 sudo apt update && sudo apt install debsums
 sudo debsums | grep -vi "OK"
+```
+
+### Audit with Lynis
+
+```sh
+sudo apt update && sudo apt install lynis
+sudo lynis audit system --quick
+sudo lynis audit system
 ```
 
 ### Audit files with ClamAV
@@ -269,24 +199,26 @@ telnet 1.2.3.4 5432
 
 ```sh
 # Check logs in case of errors by Request-ID from Chrome DevTools
-kamal app logs -g b7b72d8b-d2c6-4536-800e-0bf5420d6c95
-
-kamal traefik logs
+local$ kamal app logs -g b7b72d8b-d2c6-4536-800e-0bf5420d6c95
+local$ kamal traefik logs
 ```
 
 ## Extra docs
 
 ### 3rd party services
 
-Server up monitoring, AWS, etc.
+TODO: Server up monitoring, AWS, etc.
 
 ### System architecture
 
+TODO:
 * feature1/module1/services1
 * ...
 * featureN/moduleN/servicesN
 
 ### Calendar events of server maintenance
+
+TODO:
 * clean up docker images, logs, etc.
 * updates/upgrades: `sudo apt-get upgrade -y`
 * check backups: DB & app data restoring, AWS, etc.
@@ -296,4 +228,43 @@ Server up monitoring, AWS, etc.
 
 ### Useful commands
 
+TODO:
 * server access, etc.
+* server access, etc.
+
+#### Kamal & Docker
+```sh
+# Push updates
+local$ kamal deploy -d demo
+
+# Cleanup docker in case of errors of lack of space on server
+docker stop $(docker ps -a -q) && docker rm $(docker ps -a -q)
+docker system prune -a
+
+# Clean up space of local builds in case of lack of space on your machine
+local$ kamal build remove -d demo
+```
+
+```sh
+# Push updated env vars
+kamal app stop -d demo
+kamal env push -d demo
+kamal app start -d demo
+kamal app boot -d demo
+kamal traefik reboot -d demo
+
+# Create new session
+kamal app exec -i --reuse bash -d demo
+kamal app exec -i 'bin/rails c' -d demo
+
+# Attach to exists container & hot reload Ruby files without deploy
+docker ps -a
+docker exec -it --user root 49270eee5086 bash
+apt-get update
+apt-get install micro
+micro path_to_editable/file.rb
+exit
+docker restart 49270eee5086
+
+docker exec -it 49270eee5086 bin/rails c
+```

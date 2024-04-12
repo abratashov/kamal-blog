@@ -66,16 +66,9 @@ local$ cat ~/.ssh/id_ed25519.pub | ssh deployer@1.2.3.4 'cat >> ~/.ssh/authorize
 ### Install extra tools
 ```sh
 # Docker
-sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
-curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
-sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
-sudo apt update
-sudo apt install -y docker-ce docker-ce-cli containerd.io
-sudo systemctl start docker
-sudo systemctl enable docker
-docker --version
+sudo apt install -y docker.io curl git
+sudo docker --version
 sudo usermod -aG docker $USER
-newgrp docker
 
 # Letsencrypt
 sudo mkdir -p /letsencrypt && sudo touch /letsencrypt/acme.json && sudo chmod 600 /letsencrypt/acme.json
@@ -113,9 +106,9 @@ Set all needed credentials that are used in the `config/initializers/environment
 
   ################################################# DB Postgres
   DB_NAME=myapp_production
-  DB_USER=deployer
-  DB_PASSWORD=pgpass
   DB_HOST=1.2.3.4
+  DB_USER=deployer
+  POSTGRES_PASSWORD=pgpass
 
   ################################################# DB Redis
   REDIS_PASSWORD=redispass
@@ -140,14 +133,17 @@ Set all needed credentials that are used in the `config/initializers/environment
 gem install kamal
 kamal setup -d demo
 
+# Change DB password in case of sensitive data
+# ...
+
 # Update server
 kamal deploy -d demo
 ```
 
 ```sh
 # Add full read/write access for shared folders
-sudo chmod 666 -R /data/storage
-sudo chmod 666 -R /data/uploads
+sudo chmod 777 -R /data/storage
+sudo chmod 777 -R /data/uploads
 ```
 
 ## Post-setup server

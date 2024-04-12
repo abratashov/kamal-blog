@@ -20,9 +20,9 @@ Create and set all need credentials that are used in the `config/initializers/en
 
 ################################################# DB Postgres
 DB_NAME=kamal_blog_development
-DB_USER=postgres
-DB_PASSWORD=postgres
 DB_HOST=localhost
+DB_USER=postgres
+POSTGRES_PASSWORD=postgres
 
 ################################################# DB Redis
 REDIS_URL=redis://localhost:6379/0

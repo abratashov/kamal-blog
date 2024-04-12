@@ -1,1 +1,5 @@
+CREATE ROLE deployer WITH SUPERUSER LOGIN PASSWORD 'jg89s33_DeL07wEetKl';
 CREATE DATABASE kamal_blog_production;
+GRANT CREATE ON SCHEMA public TO deployer;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO deployer;
+GRANT ALL PRIVILEGES ON DATABASE kamal_blog_production to deployer;

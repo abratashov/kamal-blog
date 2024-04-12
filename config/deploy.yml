@@ -14,6 +14,10 @@ registry:
 ssh:
   user: <%= ENV['SERVER_USER'] %>
 
+# https://kamal-deploy.org/docs/configuration/builders/#using-native-builder-when-multi-arch-isnt-needed
+builder:
+  multiarch: false
+
 servers:
   web:
     hosts:
@@ -56,9 +60,9 @@ env:
     # - SERVER_SSL_EMAIL
     ################################################# DB Postgres
     - DB_NAME
-    - DB_USER
-    - DB_PASSWORD
     - DB_HOST
+    - DB_USER
+    - POSTGRES_PASSWORD
     ################################################# DB Redis
     # - REDIS_PASSWORD
     - REDIS_URL
@@ -85,7 +89,7 @@ accessories:
       secret:
         - DB_NAME
         - DB_USER
-        - DB_PASSWORD
+        - POSTGRES_PASSWORD
     files:
       - db/production.sql:/docker-entrypoint-initdb.d/setup.sql
     directories:

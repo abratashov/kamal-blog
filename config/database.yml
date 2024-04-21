@@ -11,7 +11,8 @@ development:
 
 test:
   <<: *default
-  database: kamal_blog_test
+  database: <%= ENV.fetch("DB_NAME") { 'kamal_blog_test' } %>
+  host: <%= ENV.fetch("DB_HOST") { 'localhost' } %>
 
 production:
   <<: *default

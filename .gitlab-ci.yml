@@ -1,0 +1,25 @@
+# Useful sources:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Ruby.gitlab-ci.yml
+# https://revs.runtime-revolution.com/ruby-on-rails-ci-cd-with-gitlab-763db5cf3a1c
+# https://karol-filipczuk.medium.com/gitlab-ci-cd-pipeline-run-script-via-ssh-to-remote-server-9594f326bc2f
+
+################# Set GitLab CI Variables
+# https://gitlab.com/user/project/-/settings/ci_cd
+
+# Demo env:
+# DEMO_ENV_FILE="Content of .env file with all need env variables" (Type: File)
+# DEMO_SERVER="1.2.3.4"
+# DEMO_SSH_PRIVATE_KEY="Private key with mandatory a newline at the end!" (Type: File)
+
+# Production env:
+# PROD_ENV_FILE=...
+# PROD_SERVER=...
+# PROD_SSH_PRIVATE_KEY=...
+# PROD_DEPLOYER="'gitlab_username' who is allowed to update the prod"
+
+# All env
+# SKIP_PIPELINE="Set 'yes' or 'no' to skip the pipeline"
+
+include:
+  - local: '/.gitlab-ci/build.yml'
+  - local: '/.gitlab-ci/deploy.yml'

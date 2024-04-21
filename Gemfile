@@ -47,7 +47,6 @@ gem "bootsnap", require: false
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
 # gem "image_processing", "~> 1.2"
 
-gem "kamal"
 
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
@@ -71,14 +70,20 @@ group :test do
   # Use system testing [https://guides.rubyonrails.org/testing.html#system-testing]
   gem "capybara"
   gem "selenium-webdriver"
+  gem "simplecov", require: false
 end
 
-gem 'carrierwave', '~> 3.0'
-gem 'carrierwave_backgrounder', '0.4.3', git: 'https://github.com/roman-franko/carrierwave_backgrounder.git'
-gem 'carrierwave-base64', '~> 2.10'
-gem 'carrierwave-crop', '0.2.0', git: 'https://github.com/roman-franko/carrierwave-crop.git'
-gem 'mini_magick', '~> 4.12'
+gem "carrierwave", "~> 3.0"
+gem "carrierwave_backgrounder", "0.4.3", git: "https://github.com/roman-franko/carrierwave_backgrounder.git"
+gem "carrierwave-base64", "~> 2.10"
+gem "carrierwave-crop", "0.2.0", git: "https://github.com/roman-franko/carrierwave-crop.git"
+gem "mini_magick", "~> 4.12"
 
-gem 'resque', '~> 2.6'
-gem "redis-rails", '~> 5.0'
+gem "resque", "~> 2.6"
+gem "redis-rails", "~> 5.0"
 gem "dotenv-rails"
+
+# Pipeline
+gem "rubocop-rails-omakase", require: false
+# gem "bundler", "~> 2.5", require: false # Fix CI/CD issue
+# gem "kamal"

@@ -1,4 +1,4 @@
-return if ENV['SECRET_KEY_BASE_DUMMY']
+return if ENV["SECRET_KEY_BASE_DUMMY"]
 
 if Rails.env.development?
   Rails.application.config.action_mailer.delivery_method = :letter_opener
@@ -14,5 +14,5 @@ Rails.application.config.action_mailer.smtp_settings = {
   password:             Rails.application.config.email_password,
   authentication:       Rails.application.config.email_authentication,
   enable_starttls_auto: Rails.application.config.email_enable_starttls_auto,
-  openssl_verify_mode:  'none'
+  openssl_verify_mode:  "none"
 }

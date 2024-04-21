@@ -1,0 +1,75 @@
+# Runs after build...
+
+################################## DEPLOY STEP
+
+.deploy_template: &deploy_template
+  stage: deploy
+  when: manual
+
+  # Linux Alpine based
+  image: docker:24.0.5
+  services:
+    - docker:24.0.5-dind
+
+  before_script:
+    # Install base tools
+    - apk update
+    - apk add build-base git openssh-client
+
+    # Add SSH Key
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - cp "$SSH_PRIVATE_KEY" ~/.ssh/id_ed25519
+    - ssh-keyscan $SERVER >> ~/.ssh/known_hosts || echo "failed"
+    - chmod 644 ~/.ssh/known_hosts
+    - eval $(ssh-agent -s)
+    - cat "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+
+    # Install Ruby
+    - apk add --virtual ruby-3.2.2 openssl-dev ruby-dev
+    - gem install bundler -v 2.4.10 --no-document
+
+  script:
+    # Deploy
+    - gem install kamal -v 1.4 --no-document
+    - cp "$ENV_FILE" .env
+    - kamal server bootstrap
+    - kamal env push
+    - kamal deploy
+
+  after_script:
+    - rm ~/.ssh/id_ed25519
+    - rm .env
+
+  dependencies:
+    - build
+
+deploy_demo: ################# Demo
+  environment: demo
+
+  # Allow to deploy only after merge to "main" branch by any user
+  rules:
+   - if: $CI_COMMIT_BRANCH == "main"
+   # - if: $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED # Debug purpose
+
+  variables:
+    SSH_PRIVATE_KEY: $DEMO_SSH_PRIVATE_KEY
+    SERVER: $DEMO_SERVER
+    ENV_FILE: $DEMO_ENV_FILE
+
+  <<: *deploy_template
+
+deploy_prod: ################# Production
+  environment: production
+
+  # Allow to deploy only after merge to "main" branch by responsible user
+  rules:
+   - if: $CI_COMMIT_BRANCH == "main" && $GITLAB_USER_LOGIN == $PROD_DEPLOYER
+   # - if: $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED && $GITLAB_USER_LOGIN == $PROD_DEPLOYER # Debug purpose
+
+  variables:
+    SSH_PRIVATE_KEY: $PROD_SSH_PRIVATE_KEY
+    SERVER: $PROD_SERVER
+    ENV_FILE: $PROD_ENV_FILE
+
+  <<: *deploy_template

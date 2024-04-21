@@ -1,5 +1,5 @@
-require 'yaml'
-require 'resque'
+require "yaml"
+require "resque"
 
 Resque.redis = Redis.new
 unless Rails.env.test?

@@ -14,9 +14,26 @@ registry:
 ssh:
   user: <%= ENV['SERVER_USER'] %>
 
-# https://kamal-deploy.org/docs/configuration/builders/#using-native-builder-when-multi-arch-isnt-needed
+# ENV https://docs.gitlab.com/ee/ci/variables/predefined_variables.html
+<% if ENV['CI'] %>
+
+# Gitlab doesn't support caching
 builder:
   multiarch: false
+  remote:
+    arch: amd64
+    host: ssh://<%= ENV['SERVER_USER'] %>@<%= ENV['SERVER_IP'] %>
+
+<% else %>
+
+# Local https://kamal-deploy.org/docs/configuration/builders/#using-local-builder-for-single-arch
+builder:
+  cache:
+    type: registry
+  remote:
+    arch: amd64
+
+<% end %>
 
 servers:
   web:

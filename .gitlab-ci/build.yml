@@ -1,0 +1,58 @@
+stages:
+  - build
+  - deploy
+
+################################## BUILD STEP
+build:
+  stage: build
+
+  rules:
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_PROTECTED
+
+  # Linux Debian based
+  image: ruby:3.2.2
+
+  before_script:
+    - >
+      if [ "$SKIP_PIPELINE" == "yes" ]; then
+        echo "Skipping the pipeline..." && exit 0
+      fi
+    - ruby -v
+    # Uncomment next line if your rails app needs a JS runtime:
+    # - apt-get update -q && apt-get install nodejs -yqq
+    - bundle config set --local deployment true
+    - bundle config set --local path './vendor/ruby'
+    - bundle install -j $(nproc)
+
+  # Cache gems in between builds
+  cache:
+    key:
+      files:
+        - Gemfile.lock
+    paths:
+      - vendor/ruby
+
+  variables:
+    DB_NAME: kamal_blog_test
+    DB_HOST: postgres
+    DB_USER: postgres
+    POSTGRES_PASSWORD: postgres
+    RAILS_ENV: test
+    REDIS_URL: "redis://redis:6379/0"
+    DATABASE_URL: "postgresql://${DB_USER}:${POSTGRES_PASSWORD}@${DB_HOST}:5432/${DB_NAME}"
+
+  services:
+    - redis:7.0
+    - postgres:15
+
+  script:
+    ################################## LINT STEP
+    - bin/rubocop
+
+    ################################## TEST STEP
+    - bin/rails db:create
+    - bin/rails db:migrate
+    - bin/rails db:seed
+    - bin/rails test
+
+# Then follows deploy...
